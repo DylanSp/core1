@@ -1,0 +1,20 @@
+name:                core1
+version:             0.1.0.0
+#synopsis:
+#description:
+homepage:            https://github.com/DylanSp/core1#readme
+license:             MIT
+author:              Dylan
+maintainer:          dylan.richard.sprague@gmail.com
+copyright:           value
+category:            value
+extra-source-files:
+- README.md
+
+dependencies:
+  - base >= 4.7 && < 5
+
+executables:
+  core1:
+    source-dirs:      src
+    main:             Main.hs
