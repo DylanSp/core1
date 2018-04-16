@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 94095165485521bfbce2dce88c98ceb35fc8bcaebe40e877b6748212206559a8
+-- hash: 9e3acb7854bd5cf21e5d23fba842ae778b0ce0e460262828be437187595e6130
 
 name:           core1
 version:        0.1.0.0
@@ -25,6 +25,9 @@ executable core1
       src
   build-depends:
       base >=4.7 && <5
+    , containers
   other-modules:
+      Eval
+      Syntax
       Paths_core1
   default-language: Haskell2010
