@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9e3acb7854bd5cf21e5d23fba842ae778b0ce0e460262828be437187595e6130
+-- hash: 3a6d50a6a9e13d05115f51eef6675a219c215871c0f6631efb42749ca717f999
 
 name:           core1
 version:        0.1.0.0
@@ -19,15 +19,43 @@ cabal-version:  >= 1.10
 extra-source-files:
     README.md
 
-executable core1
-  main-is: Main.hs
+library
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
     , containers
-  other-modules:
+  exposed-modules:
       Eval
       Syntax
+  other-modules:
+      Paths_core1
+  default-language: Haskell2010
+
+executable core1-exe
+  main-is: Main.hs
+  hs-source-dirs:
+      app
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , core1
+  other-modules:
+      Paths_core1
+  default-language: Haskell2010
+
+test-suite core1-test
+  type: exitcode-stdio-1.0
+  main-is: Test.hs
+  hs-source-dirs:
+      test
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , core1
+    , hedgehog
+    , tasty
+    , tasty-hedgehog
+  other-modules:
       Paths_core1
   default-language: Haskell2010

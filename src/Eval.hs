@@ -2,6 +2,7 @@
 
 module Eval (
     eval
+  , Value(..)
 ) where
 
 import Syntax

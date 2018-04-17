@@ -15,7 +15,22 @@ dependencies:
   - base >= 4.7 && < 5
   - containers
 
+library:
+  source-dirs:        src
+
 executables:
-  core1:
-    source-dirs:      src
+  core1-exe:
+    source-dirs:      app
     main:             Main.hs
+    dependencies:
+      - core1
+
+tests:
+  core1-test:
+    source-dirs:      test
+    main:             Test.hs
+    dependencies:
+      - core1
+      - hedgehog
+      - tasty
+      - tasty-hedgehog
