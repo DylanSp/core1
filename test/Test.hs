@@ -18,11 +18,13 @@ tests = testGroup "All Tests" [properties, units]
 -- property-based testing
 
 properties :: TestTree
-properties = testGroup "Properties" [identity, kConst, skki]
+properties = testGroup "Properties" [identity, kConst, skki, ifTrue, ifFalse]
 
 identity = testProperty "I combinator is identity" propIdentity
 kConst = testProperty "K combinator is const" propKConst
 skki = testProperty "SKK = I" propSKKI
+ifTrue = testProperty "if true a b = a" propIfTrue
+ifFalse = testProperty "if false a b = b" propIfFalse
 
 -- generators
 
@@ -67,7 +69,27 @@ propSKKI = HH.property $ do
     let vn = VInt n
     eval (Map.empty) (Apply (Apply (Apply sComb kComb) kComb) ln) === vn
 
+-- if true a b == a
+propIfTrue :: HH.Property
+propIfTrue = HH.property $ do
+    m <- HH.forAll genAnyInt
+    let lm = Lit . LInt $ m
+    let vm = VInt m
+    n <- HH.forAll genAnyInt
+    let ln = Lit . LInt $ n
+    eval Map.empty (If (Lit (LBool True)) lm ln) === vm
+
+propIfFalse :: HH.Property
+propIfFalse = HH.property $ do
+    m <- HH.forAll genAnyInt
+    let lm = Lit . LInt $ m
+    n <- HH.forAll genAnyInt
+    let ln = Lit . LInt $ n
+    let vn = VInt n
+    eval Map.empty (If (Lit (LBool False)) lm ln) === vn
+
 -- unit testing
+
 units :: TestTree
 units = testGroup "Unit Tests" [letExample]
 
