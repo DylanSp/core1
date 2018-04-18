@@ -42,6 +42,7 @@ eval env = \case
         Equals -> VBool $ m == n
         where (VInt m) = eval env left --accept that these are partial for now,
               (VInt n) = eval env right --will eliminate possibility of error with typechecker later
+    Fix expr -> eval env (Apply expr (Fix expr))
 
 --beta reduction: replace a bound variable in the lambda with the argument to the lambda
 apply :: Value -> Value -> Value

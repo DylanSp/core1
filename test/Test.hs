@@ -136,9 +136,14 @@ propEqOp = HH.property $ do
 -- unit testing
 
 units :: TestTree
-units = testGroup "Unit Tests" [letExample]
+units = testGroup "Unit Tests" [letExample, fixExample]
 
 letExample :: TestTree
 letExample = testCase "let x = 3 in x evaluates to 3" $ do
     let letExpression = Let "x" (Lit (LInt 3)) (Var "x")
     eval Map.empty letExpression @?= VInt 3
+
+fixExample :: TestTree
+fixExample = testCase "factorial 3 == 6" $ do
+    let factorial = Fix (Lambda "fact" (Lambda "x" (If (Op Equals (Var "x") (Lit (LInt 0))) (Lit (LInt 1)) (Op Multiply (Var "x") (Apply (Var "fact") (Op Subtract (Var "x") (Lit (LInt 1))))))))
+    eval Map.empty (Apply factorial (Lit (LInt 3))) @?= VInt 6
