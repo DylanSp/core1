@@ -18,13 +18,25 @@ tests = testGroup "All Tests" [properties, units]
 -- property-based testing
 
 properties :: TestTree
-properties = testGroup "Properties" [identity, kConst, skki, ifTrue, ifFalse]
+properties = testGroup "Properties" [ identity
+                                    , kConst
+                                    , skki
+                                    , ifTrue
+                                    , ifFalse
+                                    , addOp
+                                    , subOp
+                                    , mulOp
+                                    , eqOp ]
 
 identity = testProperty "I combinator is identity" propIdentity
 kConst = testProperty "K combinator is const" propKConst
-skki = testProperty "SKK = I" propSKKI
-ifTrue = testProperty "if true a b = a" propIfTrue
-ifFalse = testProperty "if false a b = b" propIfFalse
+skki = testProperty "SKK == I" propSKKI
+ifTrue = testProperty "if true a b == a" propIfTrue
+ifFalse = testProperty "if false a b == b" propIfFalse
+addOp = testProperty "Add a b == a + b" propAddOp
+subOp = testProperty "Subtract a b == a - b" propSubOp
+mulOp = testProperty "Multiply a b == a * b" propMulOp
+eqOp = testProperty "Equals a b == (a == b)" propEqOp
 
 -- generators
 
@@ -79,6 +91,7 @@ propIfTrue = HH.property $ do
     let ln = Lit . LInt $ n
     eval Map.empty (If (Lit (LBool True)) lm ln) === vm
 
+-- if false a b == b
 propIfFalse :: HH.Property
 propIfFalse = HH.property $ do
     m <- HH.forAll genAnyInt
@@ -87,6 +100,38 @@ propIfFalse = HH.property $ do
     let ln = Lit . LInt $ n
     let vn = VInt n
     eval Map.empty (If (Lit (LBool False)) lm ln) === vn
+
+propAddOp :: HH.Property
+propAddOp = HH.property $ do
+    m <- HH.forAll genAnyInt
+    let lm = Lit . LInt $ m
+    n <- HH.forAll genAnyInt
+    let ln = Lit . LInt $ n
+    eval Map.empty (Op Add lm ln) === VInt (m + n)
+
+propSubOp :: HH.Property
+propSubOp = HH.property $ do
+    m <- HH.forAll genAnyInt
+    let lm = Lit . LInt $ m
+    n <- HH.forAll genAnyInt
+    let ln = Lit . LInt $ n
+    eval Map.empty (Op Subtract lm ln) === VInt (m - n)
+
+propMulOp :: HH.Property
+propMulOp = HH.property $ do
+    m <- HH.forAll genAnyInt
+    let lm = Lit . LInt $ m
+    n <- HH.forAll genAnyInt
+    let ln = Lit . LInt $ n
+    eval Map.empty (Op Multiply lm ln) === VInt (m * n)
+
+propEqOp :: HH.Property
+propEqOp = HH.property $ do
+    m <- HH.forAll genAnyInt
+    let lm = Lit . LInt $ m
+    n <- HH.forAll genAnyInt
+    let ln = Lit . LInt $ n
+    eval Map.empty (Op Equals lm ln) === VBool (m == n)
 
 -- unit testing
 

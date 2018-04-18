@@ -35,6 +35,13 @@ eval env = \case
     If cond tr fl -> case eval env cond of
         VBool check -> if check then eval env tr else eval env fl
         _ -> error "Non-boolean used as condition"
+    Op op left right -> case op of
+        Add -> VInt $ m + n
+        Subtract -> VInt $ m - n
+        Multiply -> VInt $ m * n
+        Equals -> VBool $ m == n
+        where (VInt m) = eval env left --accept that these are partial for now,
+              (VInt n) = eval env right --will eliminate possibility of error with typechecker later
 
 --beta reduction: replace a bound variable in the lambda with the argument to the lambda
 apply :: Value -> Value -> Value
