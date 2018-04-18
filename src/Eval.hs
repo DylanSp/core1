@@ -30,6 +30,8 @@ eval env = \case
         Nothing -> error $ "Variable " ++ show name ++ " not in scope"
     Lambda name body -> VClosure name body env
     Apply func arg -> apply (eval env func) (eval env arg)
+    Let name value body -> eval env' body
+        where env' = Map.insert name (eval env value) env
 
 --beta reduction: replace a bound variable in the lambda with the argument to the lambda
 apply :: Value -> Value -> Value

@@ -34,3 +34,4 @@ tests:
       - hedgehog
       - tasty
       - tasty-hedgehog
+      - tasty-hunit

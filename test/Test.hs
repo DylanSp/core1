@@ -5,6 +5,7 @@ import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 import Test.Tasty
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 import Eval
 import Syntax
@@ -12,7 +13,9 @@ import Syntax
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "All Tests" [properties]
+tests = testGroup "All Tests" [properties, units]
+
+-- property-based testing
 
 properties :: TestTree
 properties = testGroup "Properties" [identity, kConst, skki]
@@ -63,3 +66,12 @@ propSKKI = HH.property $ do
     let ln = Lit . LInt $ n
     let vn = VInt n
     eval (Map.empty) (Apply (Apply (Apply sComb kComb) kComb) ln) === vn
+
+-- unit testing
+units :: TestTree
+units = testGroup "Unit Tests" [letExample]
+
+letExample :: TestTree
+letExample = testCase "let x = 3 in x evaluates to 3" $ do
+    let letExpression = Let "x" (Lit (LInt 3)) (Var "x")
+    eval Map.empty letExpression @?= VInt 3
