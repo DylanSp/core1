@@ -14,6 +14,8 @@ extra-source-files:
 dependencies:
   - base >= 4.7 && < 5
   - containers
+  - transformers
+  - mtl
 
 library:
   source-dirs:        src
@@ -33,5 +35,6 @@ tests:
       - core1
       - hedgehog
       - tasty
+      - tasty-expected-failure
       - tasty-hedgehog
       - tasty-hunit

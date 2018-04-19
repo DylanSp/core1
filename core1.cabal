@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7129fd05c6e7e3af82ae6372a90a7fbf5bf1836e6048636521bfbce288ef7376
+-- hash: e526b6d5f73ef773e9e3f0e5ed263035081128d16077961e2d87afac2122ec2b
 
 name:           core1
 version:        0.1.0.0
@@ -25,9 +25,12 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , mtl
+    , transformers
   exposed-modules:
       Eval
       Syntax
+      Type
   other-modules:
       Paths_core1
   default-language: Haskell2010
@@ -40,6 +43,8 @@ executable core1-exe
       base >=4.7 && <5
     , containers
     , core1
+    , mtl
+    , transformers
   other-modules:
       Paths_core1
   default-language: Haskell2010
@@ -54,9 +59,12 @@ test-suite core1-test
     , containers
     , core1
     , hedgehog
+    , mtl
     , tasty
+    , tasty-expected-failure
     , tasty-hedgehog
     , tasty-hunit
+    , transformers
   other-modules:
       Paths_core1
   default-language: Haskell2010

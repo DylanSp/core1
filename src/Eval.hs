@@ -28,7 +28,9 @@ eval env = \case
     Var name -> case (Map.lookup name env) of
         (Just val) -> val
         Nothing -> error $ "Variable " ++ show name ++ " not in scope"
-    Lambda name body -> VClosure name body env
+
+    -- ignore type; we presume it's already been typechecked
+    Lambda name _ body -> VClosure name body env
     Apply func arg -> apply (eval env func) (eval env arg)
     Let name value body -> eval env' body
         where env' = Map.insert name (eval env value) env
