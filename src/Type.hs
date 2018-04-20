@@ -12,7 +12,7 @@ import Syntax
 data TypeError = Mismatch Type Type
                | NotFunction Type -- attempting to apply a non-function to an argument, or fix a non-function
                | NotInScope Identifier
-               deriving (Show)
+               deriving (Show, Eq)
 
 type TypingEnv = Map.Map Identifier Type
 
@@ -72,12 +72,12 @@ typeCheck = \case
             -- only define equality on ints
             Equals -> case (leftType, rightType) of
                         (TInt, TInt) -> return TBool
-                        (TInt, bad) -> throwError $ Mismatch bad TInt
+                        (TInt, bad) -> throwError $ Mismatch TInt bad
                         (bad, _) -> throwError $ Mismatch bad TInt
             -- Add, Subtract, Multiply
             _ -> case (leftType, rightType) of
                     (TInt, TInt) -> return TInt
-                    (TInt, bad) -> throwError $ Mismatch bad TInt
+                    (TInt, bad) -> throwError $ Mismatch TInt bad
                     (bad, _) -> throwError $ Mismatch bad TInt
 
     Fix expr -> do
@@ -87,6 +87,5 @@ typeCheck = \case
                                   | otherwise -> throwError $ Mismatch a b
                     nonFunc -> throwError $ NotFunction nonFunc
 
---type Check a = ExceptT TypeError (Reader TypingEnv) a
 runTypecheck :: TypingEnv -> Check a -> Either TypeError a
 runTypecheck env checker = runReader (runExceptT checker) env
