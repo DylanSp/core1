@@ -19,13 +19,13 @@ data Value = VInt Integer
 instance Show Value where
     show (VInt n) = show n
     show (VBool b) = show b
-    show (VClosure _ _ _) = "<closure>"
+    show (VClosure{}) = "<closure>"
 
 eval :: Environment -> CoreExpr -> Value
 eval env = \case
     Lit (LInt n) -> VInt n
     Lit (LBool b) -> VBool b
-    Var name -> case (Map.lookup name env) of
+    Var name -> case Map.lookup name env of
         (Just val) -> val
         Nothing -> error $ "Variable " ++ show name ++ " not in scope"
 
