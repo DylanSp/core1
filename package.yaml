@@ -17,6 +17,13 @@ dependencies:
   - transformers
   - mtl
 
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Wredundant-constraints
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+
 library:
   source-dirs:        src
 

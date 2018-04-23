@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e526b6d5f73ef773e9e3f0e5ed263035081128d16077961e2d87afac2122ec2b
+-- hash: c7042c316afc3f10d4be606342ab4abb48f624eb0b94f68731105afb6dd88155
 
 name:           core1
 version:        0.1.0.0
@@ -22,6 +22,7 @@ extra-source-files:
 library
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wcompat -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
   build-depends:
       base >=4.7 && <5
     , containers
@@ -39,6 +40,7 @@ executable core1-exe
   main-is: Main.hs
   hs-source-dirs:
       app
+  ghc-options: -Wall -Wcompat -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
   build-depends:
       base >=4.7 && <5
     , containers
@@ -54,6 +56,7 @@ test-suite core1-test
   main-is: Test.hs
   hs-source-dirs:
       test
+  ghc-options: -Wall -Wcompat -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
   build-depends:
       base >=4.7 && <5
     , containers
