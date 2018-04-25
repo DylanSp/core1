@@ -53,7 +53,10 @@ typeCheck = \case
                           | otherwise -> throwError $ Mismatch argType a
             nonFunc -> throwError $ NotFunction nonFunc
 
-    Let name value body -> undefined
+    --Let name value body -> checkInEnv name (typeCheck value) ??
+    Let name value body -> do
+        valueType <- typeCheck value
+        checkInEnv name valueType (typeCheck body)
 
     If cond tr fl -> do
         condType <- typeCheck cond

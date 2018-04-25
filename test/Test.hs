@@ -225,6 +225,10 @@ typeTests = testGroup "Unit tests of typechecker" [ funcAndVar
                                                   , fixMismatch
                                                   , fixNonFunction
                                                   , correctApply
+                                                  , correctLet
+                                                  , letScopeCheck
+                                                  , letInnerError
+                                                  , letOuterError
                                                   ]
 
 funcAndVar :: TestTree
@@ -293,3 +297,26 @@ correctApply :: TestTree
 correctApply = testCase "typeof ((\\x : Int -> x)1) == TInt" $ do
     let applyExpr = Apply (Lambda "x" TInt (Var "x")) (Lit (LInt 1))
     runTypecheck Map.empty (typeCheck applyExpr) @?= Right TInt
+
+correctLet :: TestTree
+correctLet = testCase "typeof (let x = 1 in True) == TBool" $ do
+    let letExpr = Let "x" (Lit (LInt 1)) (Lit (LBool True))
+    runTypecheck Map.empty (typeCheck letExpr) @?= Right TBool
+
+-- make sure that the "let x = a" part of let...in is in scope when checking "in b"
+letScopeCheck :: TestTree
+letScopeCheck = testCase "typeof (let x = 1 in x) == TInt" $ do
+    let letExpr = Let "x" (Lit (LInt 1)) (Var "x")
+    runTypecheck Map.empty (typeCheck letExpr) @?= Right TInt
+
+-- error in the "let x = a" part of let...in
+letInnerError :: TestTree
+letInnerError = testCase "typeof (let x = ((\\n : Int -> 1)True) in True) == Mismatch TBool TInt" $ do
+    let letExpr = Let "x" (Apply (Lambda "n" TInt (Lit (LInt 1))) (Lit (LBool True))) (Lit (LBool True))
+    runTypecheck Map.empty (typeCheck letExpr) @?= Left (Mismatch TBool TInt)
+
+-- error in the "in b" part of let...in
+letOuterError :: TestTree
+letOuterError = testCase "typeof (let x = 1 in y) == NotInScope" $ do
+    let letExpr = Let "x" (Lit (LInt 1)) (Var "y")
+    runTypecheck Map.empty (typeCheck letExpr) @?= Left (NotInScope "y")
