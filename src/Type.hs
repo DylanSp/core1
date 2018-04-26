@@ -1,6 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Type where
+module Type (
+    TypeError(..)
+  , typeOf
+) where
 
 -- need the MTL versions of these libraries for auto-lifting
 import Control.Monad.Except
