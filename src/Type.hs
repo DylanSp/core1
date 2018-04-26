@@ -92,3 +92,6 @@ typeCheck = \case
 
 runTypecheck :: TypingEnv -> Check a -> Either TypeError a
 runTypecheck env checker = runReader (runExceptT checker) env
+
+typeOf :: CoreExpr -> Either TypeError Type
+typeOf expr = runTypecheck Map.empty (typeCheck expr)

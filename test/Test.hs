@@ -153,19 +153,19 @@ propIntType :: HH.Property
 propIntType = HH.property $ do
     n <- HH.forAll genAnyInt
     let ln = Lit . LInt $ n
-    runTypecheck Map.empty (typeCheck ln) === Right TInt
+    typeOf ln === Right TInt
 
 propBoolType :: HH.Property
 propBoolType = HH.property $ do
     b <- HH.forAll Gen.bool
     let lb = Lit . LBool $ b
-    runTypecheck Map.empty (typeCheck lb) === Right TBool
+    typeOf lb === Right TBool
 
 propAppliedFunc :: HH.Property
 propAppliedFunc = HH.property $ do
     n <- HH.forAll genAnyInt
     let ln = Lit . LInt $ n
-    runTypecheck Map.empty (typeCheck (Apply (Lambda "x" TInt (Var "x")) ln)) === Right TInt
+    typeOf (Apply (Lambda "x" TInt (Var "x")) ln) === Right TInt
 
 propArithOp :: HH.Property
 propArithOp = HH.property $ do
@@ -174,7 +174,7 @@ propArithOp = HH.property $ do
     let lm = Lit . LInt $ m
     n <- HH.forAll genAnyInt
     let ln = Lit . LInt $ n
-    runTypecheck Map.empty (typeCheck (Op op lm ln)) === Right TInt
+    typeOf (Op op lm ln) === Right TInt
 
 propArithMismatchLeft :: HH.Property
 propArithMismatchLeft = HH.property $ do
@@ -183,7 +183,7 @@ propArithMismatchLeft = HH.property $ do
     let lb = Lit . LBool $ b
     n <- HH.forAll genAnyInt
     let ln = Lit . LInt $ n
-    runTypecheck Map.empty (typeCheck (Op op lb ln)) === Left (Mismatch TBool TInt)
+    typeOf (Op op lb ln) === Left (Mismatch TBool TInt)
 
 propArithMismatchRight :: HH.Property
 propArithMismatchRight = HH.property $ do
@@ -192,7 +192,7 @@ propArithMismatchRight = HH.property $ do
     let ln = Lit . LInt $ n
     b <- HH.forAll Gen.bool
     let lb = Lit . LBool $ b
-    runTypecheck Map.empty (typeCheck (Op op ln lb)) === Left (Mismatch TInt TBool)
+    typeOf (Op op ln lb) === Left (Mismatch TInt TBool)
 
 
 -- unit testing
@@ -234,89 +234,89 @@ typeTests = testGroup "Unit tests of typechecker" [ funcAndVar
 funcAndVar :: TestTree
 funcAndVar = testCase "typeof (\\x : Int -> x) = TFunction TInt TInt" $ do
     let lambdaExpr = Lambda "x" TInt (Var "x")
-    runTypecheck Map.empty (typeCheck lambdaExpr) @?= Right (TFunction TInt TInt)
+    typeOf lambdaExpr @?= Right (TFunction TInt TInt)
 
 outOfScope :: TestTree
 outOfScope = testCase "typeof x == NotInScope" $ do
-    runTypecheck Map.empty (typeCheck (Var "x")) @?= Left (NotInScope "x")
+    typeOf (Var "x") @?= Left (NotInScope "x")
 
 appliedToWrongType :: TestTree
 appliedToWrongType = testCase "typeof (\\x : Int -> x) True == Mismatch TBool TInt" $ do
     let lambdaExpr = Lambda "x" TInt (Var "x")
-    runTypecheck Map.empty (typeCheck (Apply lambdaExpr (Lit (LBool True)))) @?= Left (Mismatch TBool TInt)
+    typeOf (Apply lambdaExpr (Lit (LBool True))) @?= Left (Mismatch TBool TInt)
 
 applyNonFunction :: TestTree
 applyNonFunction = testCase "typeof (1 1) == NotFunction TInt" $ do
-    runTypecheck Map.empty (typeCheck (Apply (Lit (LInt 1)) (Lit (LInt 1)))) @?= Left (NotFunction TInt)
+    typeOf (Apply (Lit (LInt 1)) (Lit (LInt 1))) @?= Left (NotFunction TInt)
 
 nonBoolIfCondition :: TestTree
 nonBoolIfCondition = testCase "typeof (if 1 then True else False) == Mismatch TInt TBool" $ do
     let ifExpr = If (Lit (LInt 1)) (Lit (LBool True)) (Lit (LBool False))
-    runTypecheck Map.empty (typeCheck ifExpr) @?= Left (Mismatch TInt TBool)
+    typeOf ifExpr @?= Left (Mismatch TInt TBool)
 
 mismatchedThenElse :: TestTree
 mismatchedThenElse = testCase "typeof (if True then 1 else False) == Mismatch TInt TBool" $ do
     let ifExpr = If (Lit (LBool True)) (Lit (LInt 1)) (Lit (LBool False))
-    runTypecheck Map.empty (typeCheck ifExpr) @?= Left (Mismatch TInt TBool)
+    typeOf ifExpr @?= Left (Mismatch TInt TBool)
 
 mismatchedEqualsLeft :: TestTree
 mismatchedEqualsLeft = testCase "typeof (True == 1) == Mismatch TBool TInt" $ do
     let eqExpr = Op Equals (Lit (LBool True)) (Lit (LInt 1)) 
-    runTypecheck Map.empty (typeCheck eqExpr) @?= Left (Mismatch TBool TInt)
+    typeOf eqExpr @?= Left (Mismatch TBool TInt)
 
 mismatchedEqualsRight :: TestTree
 mismatchedEqualsRight = testCase "typeof (1 == True) == Mismatch TInt TBool" $ do
     let eqExpr = Op Equals (Lit (LInt 1)) (Lit (LBool True))
-    runTypecheck Map.empty (typeCheck eqExpr) @?= Left (Mismatch TInt TBool)
+    typeOf eqExpr @?= Left (Mismatch TInt TBool)
 
 correctIfElse :: TestTree
 correctIfElse = testCase "typeof (if True then 1 else 2) == TInt" $ do
     let ifExpr = If (Lit (LBool True)) (Lit (LInt 1)) (Lit (LInt 2))
-    runTypecheck Map.empty (typeCheck ifExpr) @?= Right TInt
+    typeOf ifExpr @?= Right TInt
 
 correctEquals :: TestTree
 correctEquals = testCase "typeof (1 == 2) == TBool" $ do
     let eqExpr = Op Equals (Lit (LInt 1)) (Lit (LInt 2))
-    runTypecheck Map.empty (typeCheck eqExpr) @?= Right TBool
+    typeOf eqExpr @?= Right TBool
 
 correctFix :: TestTree
 correctFix = testCase "typeof Fix factorial == TFunction TInt TInt" $ do
     let factorial = Fix (Lambda "fact" (TFunction TInt TInt) (Lambda "x" TInt (If (Op Equals (Var "x") (Lit (LInt 0))) (Lit (LInt 1)) (Op Multiply (Var "x") (Apply (Var "fact") (Op Subtract (Var "x") (Lit (LInt 1))))))))
-    runTypecheck Map.empty (typeCheck factorial) @?= Right (TFunction TInt TInt)
+    typeOf factorial @?= Right (TFunction TInt TInt)
 
 fixMismatch :: TestTree
 fixMismatch = testCase "typeof Fix (\\x : Bool -> 1) == Mismatch TBool TInt" $ do
     let badFunc = Fix (Lambda "x" TBool (Lit (LInt 1)))
-    runTypecheck Map.empty (typeCheck badFunc) @?= Left (Mismatch TBool TInt)
+    typeOf badFunc @?= Left (Mismatch TBool TInt)
 
 fixNonFunction :: TestTree
 fixNonFunction = testCase "typeof Fix 1 == NotFunction TInt" $ do
-    runTypecheck Map.empty (typeCheck (Fix (Lit (LInt 1)))) @?= Left (NotFunction TInt)
+    typeOf (Fix (Lit (LInt 1))) @?= Left (NotFunction TInt)
 
 correctApply :: TestTree
 correctApply = testCase "typeof ((\\x : Int -> x)1) == TInt" $ do
     let applyExpr = Apply (Lambda "x" TInt (Var "x")) (Lit (LInt 1))
-    runTypecheck Map.empty (typeCheck applyExpr) @?= Right TInt
+    typeOf applyExpr @?= Right TInt
 
 correctLet :: TestTree
 correctLet = testCase "typeof (let x = 1 in True) == TBool" $ do
     let letExpr = Let "x" (Lit (LInt 1)) (Lit (LBool True))
-    runTypecheck Map.empty (typeCheck letExpr) @?= Right TBool
+    typeOf letExpr @?= Right TBool
 
 -- make sure that the "let x = a" part of let...in is in scope when checking "in b"
 letScopeCheck :: TestTree
 letScopeCheck = testCase "typeof (let x = 1 in x) == TInt" $ do
     let letExpr = Let "x" (Lit (LInt 1)) (Var "x")
-    runTypecheck Map.empty (typeCheck letExpr) @?= Right TInt
+    typeOf letExpr @?= Right TInt
 
 -- error in the "let x = a" part of let...in
 letInnerError :: TestTree
 letInnerError = testCase "typeof (let x = ((\\n : Int -> 1)True) in True) == Mismatch TBool TInt" $ do
     let letExpr = Let "x" (Apply (Lambda "n" TInt (Lit (LInt 1))) (Lit (LBool True))) (Lit (LBool True))
-    runTypecheck Map.empty (typeCheck letExpr) @?= Left (Mismatch TBool TInt)
+    typeOf letExpr @?= Left (Mismatch TBool TInt)
 
 -- error in the "in b" part of let...in
 letOuterError :: TestTree
 letOuterError = testCase "typeof (let x = 1 in y) == NotInScope" $ do
     let letExpr = Let "x" (Lit (LInt 1)) (Var "y")
-    runTypecheck Map.empty (typeCheck letExpr) @?= Left (NotInScope "y")
+    typeOf letExpr @?= Left (NotInScope "y")
