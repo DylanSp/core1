@@ -2,6 +2,7 @@
 
 module Eval (
     eval
+  , evalProgram
   , Value(..)
 ) where
 
@@ -50,3 +51,8 @@ eval env = \case
 apply :: Value -> Value -> Value
 apply (VClosure name body env) arg = eval (Map.insert name arg env) body
 apply _ _ = error "Tried to apply a non-closure"
+
+evalProgram :: Program -> Value
+evalProgram (Program decls main) = eval populatedEnv main
+    where populatedEnv = foldr addDecl Map.empty decls
+          addDecl (ident, expr) env = Map.insert ident (eval env expr) env

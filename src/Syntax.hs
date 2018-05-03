@@ -23,7 +23,11 @@ data CoreExpr = Var Identifier
               | Fix CoreExpr
               deriving (Show, Eq)
 
+type Decl = (String, CoreExpr) -- top-level let declaration
+
+data Program = Program [Decl] CoreExpr -- last CoreExpr is the main function
+
 data Type = TInt
           | TBool
           | TFunction Type Type
-          deriving (Show, Eq)              
+          deriving (Show, Eq)

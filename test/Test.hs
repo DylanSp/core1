@@ -23,7 +23,7 @@ properties :: TestTree
 properties = testGroup "Properties" [ combinators, evaluation, typechecking ]
 
 combinators :: TestTree
-combinators = testGroup "Lamba calculus combinators" [identity, kConst, skki]
+combinators = testGroup "Lambda calculus combinators" [identity, kConst, skki]
 
 evaluation :: TestTree
 evaluation = testGroup "Basic evaluation" [ifTrue, ifFalse, addOp, subOp, mulOp, eqOp]
@@ -198,7 +198,7 @@ propArithMismatchRight = HH.property $ do
 -- unit testing
 
 units :: TestTree
-units = testGroup "Unit Tests" [letExample, fixExample, typeTests]
+units = testGroup "Unit Tests" [letExample, fixExample, typeTests, programExample]
 
 letExample :: TestTree
 letExample = testCase "let x = 3 in x evaluates to 3" $ do
@@ -320,3 +320,10 @@ letOuterError :: TestTree
 letOuterError = testCase "typeof (let x = 1 in y) == NotInScope" $ do
     let letExpr = Let "x" (Lit (LInt 1)) (Var "y")
     typeOf letExpr @?= Left (NotInScope "y")
+
+programExample :: TestTree
+programExample = testCase "evalProgram (program to calculate 1 + 2) == 3" $ do
+    let mDecl = ("m", Lit (LInt 1))
+    let nDecl = ("n", Lit (LInt 2))
+    let mainExpr = Op Add (Var "m") (Var "n")
+    evalProgram (Program [mDecl, nDecl] mainExpr) @?= VInt 3
