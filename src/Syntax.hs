@@ -27,7 +27,11 @@ type Decl = (String, CoreExpr) -- top-level let declaration
 
 data Program = Program [Decl] CoreExpr -- last CoreExpr is the main function
 
-data Type = TInt
-          | TBool
+data Type = TVariable String
+          | TConstructor String
           | TFunction Type Type
           deriving (Show, Eq)
+
+tInt, tBool :: Type
+tInt = TConstructor "Int"
+tBool = TConstructor "Bool"

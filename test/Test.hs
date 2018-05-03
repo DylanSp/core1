@@ -46,12 +46,12 @@ addOp = testProperty "Add a b == a + b" propAddOp
 subOp = testProperty "Subtract a b == a - b" propSubOp
 mulOp = testProperty "Multiply a b == a * b" propMulOp
 eqOp = testProperty "Equals a b == (a == b)" propEqOp
-intType = testProperty "typeof (any integer) == TInt" propIntType
-boolType = testProperty "typeof (any boolean) == TBool" propBoolType
-appliedFuncType = testProperty "typeof (\\x : Int -> x) (any integer) == TInt" propAppliedFunc
-arithOpType = testProperty "typeof (any Add/Subtract/Multiply) (any int) (any int) == TInt" propArithOp
-mismatchedArithOpLeft = testProperty "typeof (Add/Subtract/Multiply) (any bool) (any int) == Mismatch TBool TInt" propArithMismatchLeft
-mismatchedArithOpRight = testProperty "typeof (Add/Subtract/Multiply) (any int) (any bool) == Mismatch TInt TBool" propArithMismatchRight
+intType = testProperty "typeof (any integer) == tInt" propIntType
+boolType = testProperty "typeof (any boolean) == tBool" propBoolType
+appliedFuncType = testProperty "typeof (\\x : Int -> x) (any integer) == tInt" propAppliedFunc
+arithOpType = testProperty "typeof (any Add/Subtract/Multiply) (any int) (any int) == tInt" propArithOp
+mismatchedArithOpLeft = testProperty "typeof (Add/Subtract/Multiply) (any bool) (any int) == Mismatch tBool tInt" propArithMismatchLeft
+mismatchedArithOpRight = testProperty "typeof (Add/Subtract/Multiply) (any int) (any bool) == Mismatch tInt tBool" propArithMismatchRight
 
 -- generators
 
@@ -153,19 +153,19 @@ propIntType :: HH.Property
 propIntType = HH.property $ do
     n <- HH.forAll genAnyInt
     let ln = Lit . LInt $ n
-    typeOf ln === Right TInt
+    typeOf ln === Right tInt
 
 propBoolType :: HH.Property
 propBoolType = HH.property $ do
     b <- HH.forAll Gen.bool
     let lb = Lit . LBool $ b
-    typeOf lb === Right TBool
+    typeOf lb === Right tBool
 
 propAppliedFunc :: HH.Property
 propAppliedFunc = HH.property $ do
     n <- HH.forAll genAnyInt
     let ln = Lit . LInt $ n
-    typeOf (Apply (Lambda "x" TInt (Var "x")) ln) === Right TInt
+    typeOf (Apply (Lambda "x" tInt (Var "x")) ln) === Right tInt
 
 propArithOp :: HH.Property
 propArithOp = HH.property $ do
@@ -174,7 +174,7 @@ propArithOp = HH.property $ do
     let lm = Lit . LInt $ m
     n <- HH.forAll genAnyInt
     let ln = Lit . LInt $ n
-    typeOf (Op op lm ln) === Right TInt
+    typeOf (Op op lm ln) === Right tInt
 
 propArithMismatchLeft :: HH.Property
 propArithMismatchLeft = HH.property $ do
@@ -183,7 +183,7 @@ propArithMismatchLeft = HH.property $ do
     let lb = Lit . LBool $ b
     n <- HH.forAll genAnyInt
     let ln = Lit . LInt $ n
-    typeOf (Op op lb ln) === Left (Mismatch TBool TInt)
+    typeOf (Op op lb ln) === Left (Mismatch tBool tInt)
 
 propArithMismatchRight :: HH.Property
 propArithMismatchRight = HH.property $ do
@@ -192,7 +192,7 @@ propArithMismatchRight = HH.property $ do
     let ln = Lit . LInt $ n
     b <- HH.forAll Gen.bool
     let lb = Lit . LBool $ b
-    typeOf (Op op ln lb) === Left (Mismatch TInt TBool)
+    typeOf (Op op ln lb) === Left (Mismatch tInt tBool)
 
 
 -- unit testing
@@ -207,7 +207,7 @@ letExample = testCase "let x = 3 in x evaluates to 3" $ do
 
 fixExample :: TestTree
 fixExample = testCase "factorial 3 == 6" $ do
-    let factorial = Fix (Lambda "fact" (TFunction TInt TInt) (Lambda "x" TInt (If (Op Equals (Var "x") (Lit (LInt 0))) (Lit (LInt 1)) (Op Multiply (Var "x") (Apply (Var "fact") (Op Subtract (Var "x") (Lit (LInt 1))))))))
+    let factorial = Fix (Lambda "fact" (TFunction tInt tInt) (Lambda "x" tInt (If (Op Equals (Var "x") (Lit (LInt 0))) (Lit (LInt 1)) (Op Multiply (Var "x") (Apply (Var "fact") (Op Subtract (Var "x") (Lit (LInt 1))))))))
     eval Map.empty (Apply factorial (Lit (LInt 3))) @?= VInt 6
 
 typeTests :: TestTree
@@ -232,88 +232,88 @@ typeTests = testGroup "Unit tests of typechecker" [ funcAndVar
                                                   ]
 
 funcAndVar :: TestTree
-funcAndVar = testCase "typeof (\\x : Int -> x) = TFunction TInt TInt" $ do
-    let lambdaExpr = Lambda "x" TInt (Var "x")
-    typeOf lambdaExpr @?= Right (TFunction TInt TInt)
+funcAndVar = testCase "typeof (\\x : Int -> x) = TFunction tInt tInt" $ do
+    let lambdaExpr = Lambda "x" tInt (Var "x")
+    typeOf lambdaExpr @?= Right (TFunction tInt tInt)
 
 outOfScope :: TestTree
 outOfScope = testCase "typeof x == NotInScope" $ do
     typeOf (Var "x") @?= Left (NotInScope "x")
 
 appliedToWrongType :: TestTree
-appliedToWrongType = testCase "typeof (\\x : Int -> x) True == Mismatch TBool TInt" $ do
-    let lambdaExpr = Lambda "x" TInt (Var "x")
-    typeOf (Apply lambdaExpr (Lit (LBool True))) @?= Left (Mismatch TBool TInt)
+appliedToWrongType = testCase "typeof (\\x : Int -> x) True == Mismatch tBool tInt" $ do
+    let lambdaExpr = Lambda "x" tInt (Var "x")
+    typeOf (Apply lambdaExpr (Lit (LBool True))) @?= Left (Mismatch tBool tInt)
 
 applyNonFunction :: TestTree
-applyNonFunction = testCase "typeof (1 1) == NotFunction TInt" $ do
-    typeOf (Apply (Lit (LInt 1)) (Lit (LInt 1))) @?= Left (NotFunction TInt)
+applyNonFunction = testCase "typeof (1 1) == NotFunction tInt" $ do
+    typeOf (Apply (Lit (LInt 1)) (Lit (LInt 1))) @?= Left (NotFunction tInt)
 
 nonBoolIfCondition :: TestTree
-nonBoolIfCondition = testCase "typeof (if 1 then True else False) == Mismatch TInt TBool" $ do
+nonBoolIfCondition = testCase "typeof (if 1 then True else False) == Mismatch tInt tBool" $ do
     let ifExpr = If (Lit (LInt 1)) (Lit (LBool True)) (Lit (LBool False))
-    typeOf ifExpr @?= Left (Mismatch TInt TBool)
+    typeOf ifExpr @?= Left (Mismatch tInt tBool)
 
 mismatchedThenElse :: TestTree
-mismatchedThenElse = testCase "typeof (if True then 1 else False) == Mismatch TInt TBool" $ do
+mismatchedThenElse = testCase "typeof (if True then 1 else False) == Mismatch tInt tBool" $ do
     let ifExpr = If (Lit (LBool True)) (Lit (LInt 1)) (Lit (LBool False))
-    typeOf ifExpr @?= Left (Mismatch TInt TBool)
+    typeOf ifExpr @?= Left (Mismatch tInt tBool)
 
 mismatchedEqualsLeft :: TestTree
-mismatchedEqualsLeft = testCase "typeof (True == 1) == Mismatch TBool TInt" $ do
+mismatchedEqualsLeft = testCase "typeof (True == 1) == Mismatch tBool tInt" $ do
     let eqExpr = Op Equals (Lit (LBool True)) (Lit (LInt 1)) 
-    typeOf eqExpr @?= Left (Mismatch TBool TInt)
+    typeOf eqExpr @?= Left (Mismatch tBool tInt)
 
 mismatchedEqualsRight :: TestTree
-mismatchedEqualsRight = testCase "typeof (1 == True) == Mismatch TInt TBool" $ do
+mismatchedEqualsRight = testCase "typeof (1 == True) == Mismatch tInt tBool" $ do
     let eqExpr = Op Equals (Lit (LInt 1)) (Lit (LBool True))
-    typeOf eqExpr @?= Left (Mismatch TInt TBool)
+    typeOf eqExpr @?= Left (Mismatch tInt tBool)
 
 correctIfElse :: TestTree
-correctIfElse = testCase "typeof (if True then 1 else 2) == TInt" $ do
+correctIfElse = testCase "typeof (if True then 1 else 2) == tInt" $ do
     let ifExpr = If (Lit (LBool True)) (Lit (LInt 1)) (Lit (LInt 2))
-    typeOf ifExpr @?= Right TInt
+    typeOf ifExpr @?= Right tInt
 
 correctEquals :: TestTree
-correctEquals = testCase "typeof (1 == 2) == TBool" $ do
+correctEquals = testCase "typeof (1 == 2) == tBool" $ do
     let eqExpr = Op Equals (Lit (LInt 1)) (Lit (LInt 2))
-    typeOf eqExpr @?= Right TBool
+    typeOf eqExpr @?= Right tBool
 
 correctFix :: TestTree
-correctFix = testCase "typeof Fix factorial == TFunction TInt TInt" $ do
-    let factorial = Fix (Lambda "fact" (TFunction TInt TInt) (Lambda "x" TInt (If (Op Equals (Var "x") (Lit (LInt 0))) (Lit (LInt 1)) (Op Multiply (Var "x") (Apply (Var "fact") (Op Subtract (Var "x") (Lit (LInt 1))))))))
-    typeOf factorial @?= Right (TFunction TInt TInt)
+correctFix = testCase "typeof Fix factorial == TFunction tInt tInt" $ do
+    let factorial = Fix (Lambda "fact" (TFunction tInt tInt) (Lambda "x" tInt (If (Op Equals (Var "x") (Lit (LInt 0))) (Lit (LInt 1)) (Op Multiply (Var "x") (Apply (Var "fact") (Op Subtract (Var "x") (Lit (LInt 1))))))))
+    typeOf factorial @?= Right (TFunction tInt tInt)
 
 fixMismatch :: TestTree
-fixMismatch = testCase "typeof Fix (\\x : Bool -> 1) == Mismatch TBool TInt" $ do
-    let badFunc = Fix (Lambda "x" TBool (Lit (LInt 1)))
-    typeOf badFunc @?= Left (Mismatch TBool TInt)
+fixMismatch = testCase "typeof Fix (\\x : Bool -> 1) == Mismatch tBool tInt" $ do
+    let badFunc = Fix (Lambda "x" tBool (Lit (LInt 1)))
+    typeOf badFunc @?= Left (Mismatch tBool tInt)
 
 fixNonFunction :: TestTree
-fixNonFunction = testCase "typeof Fix 1 == NotFunction TInt" $ do
-    typeOf (Fix (Lit (LInt 1))) @?= Left (NotFunction TInt)
+fixNonFunction = testCase "typeof Fix 1 == NotFunction tInt" $ do
+    typeOf (Fix (Lit (LInt 1))) @?= Left (NotFunction tInt)
 
 correctApply :: TestTree
-correctApply = testCase "typeof ((\\x : Int -> x)1) == TInt" $ do
-    let applyExpr = Apply (Lambda "x" TInt (Var "x")) (Lit (LInt 1))
-    typeOf applyExpr @?= Right TInt
+correctApply = testCase "typeof ((\\x : Int -> x)1) == tInt" $ do
+    let applyExpr = Apply (Lambda "x" tInt (Var "x")) (Lit (LInt 1))
+    typeOf applyExpr @?= Right tInt
 
 correctLet :: TestTree
-correctLet = testCase "typeof (let x = 1 in True) == TBool" $ do
+correctLet = testCase "typeof (let x = 1 in True) == tBool" $ do
     let letExpr = Let "x" (Lit (LInt 1)) (Lit (LBool True))
-    typeOf letExpr @?= Right TBool
+    typeOf letExpr @?= Right tBool
 
 -- make sure that the "let x = a" part of let...in is in scope when checking "in b"
 letScopeCheck :: TestTree
-letScopeCheck = testCase "typeof (let x = 1 in x) == TInt" $ do
+letScopeCheck = testCase "typeof (let x = 1 in x) == tInt" $ do
     let letExpr = Let "x" (Lit (LInt 1)) (Var "x")
-    typeOf letExpr @?= Right TInt
+    typeOf letExpr @?= Right tInt
 
 -- error in the "let x = a" part of let...in
 letInnerError :: TestTree
-letInnerError = testCase "typeof (let x = ((\\n : Int -> 1)True) in True) == Mismatch TBool TInt" $ do
-    let letExpr = Let "x" (Apply (Lambda "n" TInt (Lit (LInt 1))) (Lit (LBool True))) (Lit (LBool True))
-    typeOf letExpr @?= Left (Mismatch TBool TInt)
+letInnerError = testCase "typeof (let x = ((\\n : Int -> 1)True) in True) == Mismatch tBool tInt" $ do
+    let letExpr = Let "x" (Apply (Lambda "n" tInt (Lit (LInt 1))) (Lit (LBool True))) (Lit (LBool True))
+    typeOf letExpr @?= Left (Mismatch tBool tInt)
 
 -- error in the "in b" part of let...in
 letOuterError :: TestTree

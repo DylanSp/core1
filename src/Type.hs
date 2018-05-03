@@ -38,9 +38,9 @@ lookupVar name = do
 
 typeCheck :: CoreExpr -> Check Type
 typeCheck = \case
-    Lit (LInt _) -> return TInt
+    Lit (LInt _) -> return tInt
 
-    Lit (LBool _) -> return TBool
+    Lit (LBool _) -> return tBool
 
     Var name -> lookupVar name
 
@@ -65,8 +65,8 @@ typeCheck = \case
         condType <- typeCheck cond
         trueType <- typeCheck tr
         falseType <- typeCheck fl
-        if condType /= TBool
-            then throwError $ Mismatch condType TBool
+        if condType /= tBool
+            then throwError $ Mismatch condType tBool
             else if trueType /= falseType
                 then throwError $ Mismatch trueType falseType
                 else return trueType
@@ -76,15 +76,17 @@ typeCheck = \case
         rightType <- typeCheck right
         case op of
             -- only define equality on ints
-            Equals -> case (leftType, rightType) of
-                        (TInt, TInt) -> return TBool
-                        (TInt, bad) -> throwError $ Mismatch TInt bad
-                        (bad, _) -> throwError $ Mismatch bad TInt
+            Equals -> if leftType == tInt 
+                        then if rightType == tInt
+                                then return tBool
+                                else throwError $ Mismatch tInt rightType
+                        else throwError $ Mismatch leftType tInt
             -- Add, Subtract, Multiply
-            _ -> case (leftType, rightType) of
-                    (TInt, TInt) -> return TInt
-                    (TInt, bad) -> throwError $ Mismatch TInt bad
-                    (bad, _) -> throwError $ Mismatch bad TInt
+            _ -> if leftType == tInt 
+                    then if rightType == tInt
+                        then return tInt
+                        else throwError $ Mismatch tInt rightType
+                    else throwError $ Mismatch leftType tInt
 
     Fix expr -> do
         innerType <- typeCheck expr
