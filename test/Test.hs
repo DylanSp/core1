@@ -229,6 +229,11 @@ typeTests = testGroup "Unit tests of typechecker" [ funcAndVar
                                                   , letScopeCheck
                                                   , letInnerError
                                                   , letOuterError
+                                                  , polymorphicLambda
+                                                  , polymorphicLambdaMulti
+                                                  , polymorphicApplied
+                                                  , polymorphicAppliedMulti
+                                                  , polymorphicPartialApplied
                                                   ]
 
 funcAndVar :: TestTree
@@ -320,6 +325,36 @@ letOuterError :: TestTree
 letOuterError = testCase "typeof (let x = 1 in y) == NotInScope" $ do
     let letExpr = Let "x" (Lit (LInt 1)) (Var "y")
     typeOf letExpr @?= Left (NotInScope "y")
+
+-- convert to property test?
+polymorphicLambda :: TestTree
+polymorphicLambda = testCase "typeof (\\x : a -> x) == TFunction (TVariable\"a\") (TVariable \"a\")" $ do
+    let idExpr = Lambda "x" (TVariable "a") (Var "x")
+    typeOf idExpr @?= Right (TFunction (TVariable "a") (TVariable "a"))
+
+-- convert to property test?
+polymorphicLambdaMulti :: TestTree
+polymorphicLambdaMulti = testCase "typeof (\\x : a -> (\\y : b -> x)) == TFunction (TVariable \"a\" (TFunction (TVariable \"b\") (TVariable \"a\"))" $ do
+    let constExpr = Lambda "x" (TVariable "a") (Lambda "y" (TVariable "b") (Var "x"))
+    typeOf constExpr @?= Right (TFunction (TVariable "a") (TFunction (TVariable "b") (TVariable "a")))
+
+-- convert to property test?
+polymorphicApplied :: TestTree
+polymorphicApplied = testCase "typeof ((\\x : a -> x)True) == tBool" $ do
+    let idExpr = Lambda "x" (TVariable "a") (Var "x")
+    typeOf (Apply idExpr (Lit (LBool True))) @?= Right tBool
+
+-- convert to property test?
+polymorphicAppliedMulti :: TestTree
+polymorphicAppliedMulti = testCase "typeof (((\\x : a -> (\\y : b -> x))3)True) == tInt" $ do
+    let constExpr = Lambda "x" (TVariable "a") (Lambda "y" (TVariable "b") (Var "x"))
+    typeOf (Apply (Apply constExpr (Lit (LInt 3))) (Lit (LBool True))) @?= Right tInt
+
+-- convert to property test?
+polymorphicPartialApplied :: TestTree
+polymorphicPartialApplied = testCase "typeof ((\\x : a -> (\\y : b -> x))3) == TFunction (TVariable\"b\") tInt" $ do
+    let constExpr = Lambda "x" (TVariable "a") (Lambda "y" (TVariable "b") (Var "x"))
+    typeOf (Apply constExpr (Lit (LInt 3))) @?= Right (TFunction (TVariable "b") tInt)
 
 programExample :: TestTree
 programExample = testCase "evalProgram (program to calculate 1 + 2) == 3" $ do

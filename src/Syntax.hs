@@ -27,7 +27,9 @@ type Decl = (String, CoreExpr) -- top-level let declaration
 
 data Program = Program [Decl] CoreExpr -- last CoreExpr is the main function
 
-data Type = TVariable String
+type TypeVariable = String
+
+data Type = TVariable TypeVariable
           | TConstructor String
           | TFunction Type Type
           deriving (Show, Eq)

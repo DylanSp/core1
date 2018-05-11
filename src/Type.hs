@@ -19,19 +19,24 @@ data TypeError = Mismatch Type Type
 
 type TypingEnv = Map.Map Identifier Type
 
--- monad stack to store typing environment, typing errors
-type Check a = ExceptT TypeError (Reader TypingEnv) a
+type TypingSubstitution = Map.Map TypeVariable Type
 
-extend :: Identifier -> Type -> TypingEnv -> TypingEnv
-extend name typ env = Map.insert name typ env
+-- monad stack to store typing environment, typing errors
+type Check a = ExceptT TypeError (Reader (TypingEnv, TypingSubstitution)) a
+
+extendEnv :: Identifier -> Type -> TypingEnv -> TypingEnv
+extendEnv = Map.insert
+
+extendSub :: TypeVariable -> Type -> TypingSubstitution -> TypingSubstitution
+extendSub = Map.insert
 
 -- add name: typ to the environment, then run a typecheck
 checkInEnv :: Identifier -> Type -> Check a -> Check a
-checkInEnv name typ = local $ extend name typ
+checkInEnv name typ = local $ \(env, sub) -> (extendEnv name typ env, sub)
 
 lookupVar :: Identifier -> Check Type
 lookupVar name = do
-    env <- ask
+    (env, _) <- ask
     case Map.lookup name env of
         Just t -> return t
         Nothing -> throwError $ NotInScope name
@@ -51,12 +56,17 @@ typeCheck = \case
     Apply func arg -> do
         funcType <- typeCheck func
         argType <- typeCheck arg
+        (_, subst) <- ask
+
         case funcType of
-            TFunction a b | a == argType -> return b
-                          | otherwise -> throwError $ Mismatch argType a
+            TFunction a b -> case a of
+                TVariable tvar -> applySubstitution (extendSub tvar argType subst) b
+                -- TConstructor, TFunction
+                _ -> if a == argType
+                        then return b
+                        else throwError $ Mismatch argType a
             nonFunc -> throwError $ NotFunction nonFunc
 
-    --Let name value body -> checkInEnv name (typeCheck value) ??
     Let name value body -> do
         valueType <- typeCheck value
         checkInEnv name valueType (typeCheck body)
@@ -95,8 +105,18 @@ typeCheck = \case
                                   | otherwise -> throwError $ Mismatch a b
                     nonFunc -> throwError $ NotFunction nonFunc
 
-runTypecheck :: TypingEnv -> Check a -> Either TypeError a
-runTypecheck env checker = runReader (runExceptT checker) env
+-- make this a typeclass method later, when it can be applied to other type-containing structures?
+-- make it TypingSubstitution -> Type -> Type? but then how to handle out-of-scope errors?
+applySubstitution :: TypingSubstitution -> Type -> Check Type
+applySubstitution subst typ = case typ of
+    TVariable tvar -> case Map.lookup tvar subst of
+        Just typ' -> return typ'
+        Nothing -> return typ
+    TConstructor _ -> return typ
+    TFunction tArg tBody -> TFunction <$> (applySubstitution subst tArg) <*> (applySubstitution subst tBody)
+
+runTypecheck :: (TypingEnv, TypingSubstitution) -> Check a -> Either TypeError a
+runTypecheck (env, sub) checker = runReader (runExceptT checker) (env, sub)
 
 typeOf :: CoreExpr -> Either TypeError Type
-typeOf expr = runTypecheck Map.empty (typeCheck expr)
+typeOf expr = runTypecheck (Map.empty, Map.empty) (typeCheck expr)
