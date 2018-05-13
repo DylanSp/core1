@@ -60,7 +60,7 @@ typeCheck = \case
 
         case funcType of
             TFunction a b -> case a of
-                TVariable tvar -> applySubstitution (extendSub tvar argType subst) b
+                TVariable tvar -> return $ applySubstitution (extendSub tvar argType subst) b
                 -- TConstructor, TFunction
                 _ -> if a == argType
                         then return b
@@ -106,14 +106,13 @@ typeCheck = \case
                     nonFunc -> throwError $ NotFunction nonFunc
 
 -- make this a typeclass method later, when it can be applied to other type-containing structures?
--- make it TypingSubstitution -> Type -> Type? but then how to handle out-of-scope errors?
-applySubstitution :: TypingSubstitution -> Type -> Check Type
+applySubstitution :: TypingSubstitution -> Type -> Type
 applySubstitution subst typ = case typ of
     TVariable tvar -> case Map.lookup tvar subst of
-        Just typ' -> return typ'
-        Nothing -> return typ
-    TConstructor _ -> return typ
-    TFunction tArg tBody -> TFunction <$> (applySubstitution subst tArg) <*> (applySubstitution subst tBody)
+        Just typ' -> typ'
+        Nothing -> typ
+    TConstructor _ -> typ
+    TFunction tArg tBody -> TFunction (applySubstitution subst tArg) (applySubstitution subst tBody)
 
 runTypecheck :: (TypingEnv, TypingSubstitution) -> Check a -> Either TypeError a
 runTypecheck (env, sub) checker = runReader (runExceptT checker) (env, sub)
