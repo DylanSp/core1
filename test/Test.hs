@@ -37,9 +37,9 @@ typechecking = testGroup "Type checking" [ intType
                                          , mismatchedArithOpRight
                                          ]
 
-identity = expectFail $ testProperty "I combinator is identity" propIdentity
-kConst = expectFail $ testProperty "K combinator is const" propKConst
-skki = expectFail $ testProperty "SKK == I" propSKKI
+identity = testProperty "I combinator is identity" propIdentity
+kConst = testProperty "K combinator is const" propKConst
+skki = testProperty "SKK == I" propSKKI
 ifTrue = testProperty "if true a b == a" propIfTrue
 ifFalse = testProperty "if false a b == b" propIfFalse
 addOp = testProperty "Add a b == a + b" propAddOp
@@ -63,16 +63,13 @@ genArithOp = Gen.element [Add, Subtract, Multiply]
 
 -- lambda calculus combinators
 iComb :: CoreExpr
---iComb = Lambda "x" (Var "x")
-iComb = undefined
+iComb = Lambda "x" (TVariable "a") (Var "x")
 
 kComb :: CoreExpr
---kComb = Lambda "x" (Lambda "y" (Var "x"))
-kComb = undefined
+kComb = Lambda "x" (TVariable "a") (Lambda "y" (TVariable "b") (Var "x"))
 
 sComb :: CoreExpr
---sComb = Lambda "f" (Lambda "g" (Lambda "x"  (Apply (Apply (Var "f") (Var "x")) (Apply (Var "g") (Var "x")))))
-sComb = undefined
+sComb = Lambda "f" (TFunction (TVariable "a") (TFunction (TVariable "b") (TVariable "c"))) (Lambda "g" (TFunction (TVariable "a") (TVariable "b")) (Lambda "x" (TVariable "a") (Apply (Apply (Var "f") (Var "x")) (Apply (Var "g") (Var "x")))))
 
 -- tests
 
