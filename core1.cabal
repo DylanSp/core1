@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c7042c316afc3f10d4be606342ab4abb48f624eb0b94f68731105afb6dd88155
+-- hash: 2ce25f51428aae718e27795f8b064e24f758304924110ab060237f33282bdb17
 
 name:           core1
 version:        0.1.0.0
@@ -14,12 +16,16 @@ copyright:      value
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
-
 extra-source-files:
     README.md
 
 library
+  exposed-modules:
+      Eval
+      Syntax
+      Type
+  other-modules:
+      Paths_core1
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -28,16 +34,12 @@ library
     , containers
     , mtl
     , transformers
-  exposed-modules:
-      Eval
-      Syntax
-      Type
-  other-modules:
-      Paths_core1
   default-language: Haskell2010
 
 executable core1-exe
   main-is: Main.hs
+  other-modules:
+      Paths_core1
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -47,13 +49,13 @@ executable core1-exe
     , core1
     , mtl
     , transformers
-  other-modules:
-      Paths_core1
   default-language: Haskell2010
 
 test-suite core1-test
   type: exitcode-stdio-1.0
   main-is: Test.hs
+  other-modules:
+      Paths_core1
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -68,6 +70,4 @@ test-suite core1-test
     , tasty-hedgehog
     , tasty-hunit
     , transformers
-  other-modules:
-      Paths_core1
   default-language: Haskell2010
